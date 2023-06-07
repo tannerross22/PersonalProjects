@@ -10,13 +10,17 @@ duration = 10.0
 
 # Simulate the ball's motion
 position = np.array([0.0, 2])
-velocity = np.array([1, -1])
+velocity = np.array([0, 0])
 time = 0.0
-
+bounce = 0.90
 time_values = []
 position_values = []
-
 x = np.linspace(-4, 4, 100)
+
+
+def f(x):
+    return x**2
+
 
 def reflect_velocity(position, velocity):
     # Quadratic equation: y = f(x)
@@ -46,8 +50,6 @@ def reflect_velocity(position, velocity):
     new_vel = velocity - 2 * VnN
 
     return new_vel
-
-
 def snap_to_quadratic(position):
     # Quadratic equation: y = f(x)
     def f(x):
@@ -61,7 +63,7 @@ def snap_to_quadratic(position):
     closest_y = f(closest_x)
 
     # Set the ball's position to the closest point on the quadratic curve
-    snapped_pos = np.array([closest_x, closest_y])
+    snapped_pos = np.array([closest_x, closest_y + 0.1])
 
     return snapped_pos
 
@@ -77,9 +79,13 @@ while time <= duration:
 
     # Check if the ball hits the wall
     if position[1] <= position[0]**2:
-        velocity = reflect_velocity(position, velocity * 0.97)
         position = snap_to_quadratic(position)
+        velocity = reflect_velocity(position, velocity * bounce)
+        if abs(velocity[1]) < 0.1:
+            velocity[1] = 0.0
 
+            # Move the ball slightly above the curve to avoid sticking
+        position[1] = f(position[0]) + 0.01
 
     # Increment the time
     time += time_step
@@ -97,11 +103,14 @@ def init():
     line.set_data([], [])
     return line,
 
+
 def update(frame):
     line.set_data(position_values[frame, 0], position_values[frame, 1])
     return line,
 
+
 ani = FuncAnimation(fig, update, frames=len(time_values), interval=10, init_func=init, blit=True)
+
 
 # Set the x and y limits of the plot
 ax.set_xlim(-4, 4)
