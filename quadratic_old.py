@@ -1,6 +1,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import scipy.optimize as opt
+from matplotlib.animation import FuncAnimation
 
 # Constants
 gravity = 9.81
@@ -9,7 +10,7 @@ duration = 10.0
 
 # Simulate the ball's motion
 position = np.array([0.0, 2])
-velocity = np.array([10.0, -10])
+velocity = np.array([1, -1])
 time = 0.0
 
 time_values = []
@@ -87,10 +88,23 @@ while time <= duration:
 time_values = np.array(time_values)
 position_values = np.array(position_values)
 
-# Plot the ball's trajectory
-plt.plot(position_values[:, 0], position_values[:, 1])
-plt.plot(x, x**2)
-plt.xlabel('X position')
-plt.ylabel('Y position')
-plt.title('Bouncing Ball - Wall as y = x^2')
+fig, ax = plt.subplots()
+line, = ax.plot([], [], 'o-', lw=2)
+func_line, = ax.plot(x, x ** 2, 'r-', lw=2)
+
+
+def init():
+    line.set_data([], [])
+    return line,
+
+def update(frame):
+    line.set_data(position_values[frame, 0], position_values[frame, 1])
+    return line,
+
+ani = FuncAnimation(fig, update, frames=len(time_values), interval=10, init_func=init, blit=True)
+
+# Set the x and y limits of the plot
+ax.set_xlim(-4, 4)
+ax.set_ylim(0, 4)
+
 plt.show()
