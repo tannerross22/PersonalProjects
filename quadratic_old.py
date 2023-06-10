@@ -6,17 +6,18 @@ from matplotlib.animation import FuncAnimation
 
 # Constants
 gravity = 9.81
-time_step = 0.01
+time_step = 0.0075
 duration = 100
 
 # Simulate the ball's motion
 position = np.array([0.0, 2])
-velocity = np.array([8, 0])
+velocity = np.array([.5, 0])
 time = 0.0
-bounce = 0.80
+bounce = 0.85
 time_values = []
 position_values = []
 x = np.linspace(-4, 4, 100)
+threshold_speed = 0.08
 
 
 def f(x):
@@ -73,7 +74,7 @@ def snap_to_quadratic(position):
     closest_y = f(closest_x)
 
     # Set the ball's position to the closest point on the quadratic curve
-    snapped_pos = np.array([closest_x, closest_y + 0.1])
+    snapped_pos = np.array([closest_x, closest_y])
 
     return snapped_pos
 
@@ -91,7 +92,10 @@ while time <= duration:
     if position[1] <= position[0]**2:
         position = snap_to_quadratic(position)
         velocity = reflect_velocity(position, velocity * bounce)
-
+    speed = np.linalg.norm(velocity)
+    if speed <= threshold_speed and -0.03 < position[0] < 0.03:
+        # Subtract from the magnitude of the velocity until the speed is zero
+        velocity = 0
     # Increment the time
     time += time_step
 
@@ -104,12 +108,18 @@ line, = ax.plot([], [], 'o-', lw=2)
 func_line, = ax.plot(x, x ** 2, 'r-', lw=2)
 
 
+def init():
+    line.set_data([], [])
+    return line,
+
+
 def update(frame):
     line.set_data([position_values[frame, 0]], [position_values[frame, 1]])
     return line,
 
 
-ani = FuncAnimation(fig, update, frames=len(time_values), interval=time_step*1000)
+ani = FuncAnimation(fig, update, frames=len(time_values), interval=time_step*1000, init_func=init, blit=True)
+
 
 
 # Set the x and y limits of the plot
